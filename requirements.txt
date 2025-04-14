@@ -1,0 +1,4 @@
+requests
+telebot
+arabic-reshaper
+python-bidi
