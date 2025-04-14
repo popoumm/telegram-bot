@@ -20,23 +20,25 @@ def get_full_data():
     response = requests.get(url)
     data = response.json()
 
-    message = "نرخ بازار:\n——————————————\n"
+    message_lines = [fix("نرخ بازار:"), "——————————————"]
 
     sections = {
-        "gold": "طلا و سکه",
-        "currency": "ارز"
+        "gold": "نرخ طلا و سکه",
+        "currency": "نرخ ارز"
     }
 
     for key, title in sections.items():
         if key in data:
-            message += f"\n{title}:\n"
+            message_lines.append("")
+            message_lines.append(fix(title + ":"))
             for item in data[key]:
-                name = item.get('name', '')
-                unit = item.get('unit', '')
-                price = item.get('price', '')
-                message += f"{name} | {unit} | قیمت: {price}\n"
+                name = fix(item.get('name', ''))
+                unit = fix(item.get('unit', ''))
+                price = fix(item.get('price', ''))
+                line = f"{name} | {unit} | قیمت: {price}"
+                message_lines.append(line)
 
-    return fix(message)
+    return '\n'.join(message_lines)
 
 # /start
 @bot.message_handler(commands=['start'])
