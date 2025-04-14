@@ -5,8 +5,8 @@ import arabic_reshaper
 from bidi.algorithm import get_display
 
 # گرفتن متغیرهای محیطی
-TOKEN = os.environ.get('TOKEN')
-API_KEY = os.environ.get('API_KEY')
+TOKEN = os.environ.get('TELEGRAM_TOKEN')
+API_KEY = os.environ.get('BRSAPI_KEY')
 
 bot = telebot.TeleBot(TOKEN)
 
