@@ -1,26 +1,19 @@
 import os
 import requests
 import telebot
-import arabic_reshaper
-from bidi.algorithm import get_display
 
-# گرفتن متغیرهای محیطی
 TOKEN = os.environ.get('TELEGRAM_TOKEN')
 API_KEY = os.environ.get('BRSAPI_KEY')
 
 bot = telebot.TeleBot(TOKEN)
 
-# اصلاح متن فارسی برای راست‌چین شدن
-def fix(text):
-    return get_display(arabic_reshaper.reshape(str(text)))
-
-# گرفتن اطلاعات از API و ساخت پیام کامل
+# گرفتن اطلاعات فقط برای بازار طلا و ارز
 def get_full_data():
-    url = f"https://brsapi.ir/Api/Market/Gold_Currency.php?key={API_KEY}"
+    url = "https://brsapi.ir/Api/Market/Gold_Currency.php?key=FreeaWKXMvkIa3k7ZNUobmPrX1hJfcUG"
     response = requests.get(url)
     data = response.json()
 
-    message_lines = [fix("نرخ بازار:"), "——————————————"]
+    final_message = "نرخ بازار:\n" + "——————————————\n"
 
     sections = {
         "gold": "نرخ طلا و سکه",
@@ -28,31 +21,31 @@ def get_full_data():
     }
 
     for key, title in sections.items():
-        if key in data:
-            message_lines.append("")
-            message_lines.append(fix(title + ":"))
-            for item in data[key]:
-                name = fix(item.get('name', ''))
-                unit = fix(item.get('unit', ''))
-                price = fix(item.get('price', ''))
-                line = f"{name} | {unit} | قیمت: {price}"
-                message_lines.append(line)
+        items = data.get(key, [])
+        if items:
+            final_message += f"\n{title}:\n"
+            for item in items:
+                name = item.get("name", "")
+                unit = item.get("unit", "")
+                price = item.get("price", "")
+                change = item.get("change_value", "")
+                percent = item.get("change_percent", "")
 
-    return '\n'.join(message_lines)
+                line = f"{name}\nواحد: {unit} | قیمت: {price}\nتغییر: {change} | درصد: {percent}%\n"
+                final_message += line + "------------------------\n"
 
-# /start
+    return final_message
+
+# شروع بات
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, fix("سلام! برای دریافت نرخ بازار دستور /price را ارسال کنید."))
+    bot.reply_to(message, "سلام! برای دریافت نرخ طلا و ارز، دستور /price را ارسال کنید.")
 
-# /price
+# ارسال نرخ بازار
 @bot.message_handler(commands=['price'])
 def send_price(message):
-    try:
-        text = get_full_data()
-        bot.send_message(message.chat.id, text)
-    except Exception as e:
-        bot.send_message(message.chat.id, fix("خطایی رخ داده است."))
+    text = get_full_data()
+    bot.send_message(message.chat.id, text)
 
-# اجرای ربات
+# اجرای همیشگی ربات
 bot.infinity_polling()
