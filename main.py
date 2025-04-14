@@ -1,15 +1,22 @@
 import os
 import requests
 import telebot
+import arabic_reshaper
+from bidi.algorithm import get_display
 
+# گرفتن توکن‌ها از محیط
 TOKEN = os.environ.get('TELEGRAM_TOKEN')
 API_KEY = os.environ.get('BRSAPI_KEY')
 
 bot = telebot.TeleBot(TOKEN)
 
-# گرفتن اطلاعات فقط برای بازار طلا و ارز
+# اصلاح فقط متن فارسی خالص
+def fix(text):
+    return get_display(arabic_reshaper.reshape(str(text)))
+
+# گرفتن اطلاعات از API و ساخت پیام کامل
 def get_full_data():
-    url = "https://brsapi.ir/Api/Market/Gold_Currency.php?key=FreeaWKXMvkIa3k7ZNUobmPrX1hJfcUG"
+    url = f"https://brsapi.ir/Api/Market/Gold_Currency.php?key={API_KEY}"
     response = requests.get(url)
     data = response.json()
 
@@ -23,23 +30,24 @@ def get_full_data():
     for key, title in sections.items():
         items = data.get(key, [])
         if items:
-            final_message += f"\n{title}:\n"
+            final_message += f"\n{fix(title)}:\n"
             for item in items:
-                name = item.get("name", "")
+                name = fix(item.get("name", ""))
                 unit = item.get("unit", "")
                 price = item.get("price", "")
                 change = item.get("change_value", "")
                 percent = item.get("change_percent", "")
 
-                line = f"{name}\nواحد: {unit} | قیمت: {price}\nتغییر: {change} | درصد: {percent}%\n"
-                final_message += line + "------------------------\n"
+                # فقط نام فارسی راست‌چین شه
+                final_message += f"{name}\nواحد: {unit} | قیمت: {price}\nتغییر: {change} | درصد: {percent}%\n"
+                final_message += "------------------------\n"
 
     return final_message
 
 # شروع بات
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "سلام! برای دریافت نرخ طلا و ارز، دستور /price را ارسال کنید.")
+    bot.reply_to(message, fix("سلام! برای دریافت نرخ طلا و ارز، دستور /price را ارسال کنید."))
 
 # ارسال نرخ بازار
 @bot.message_handler(commands=['price'])
