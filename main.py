@@ -5,7 +5,7 @@ import arabic_reshaper
 from bidi.algorithm import get_display
 
 # گرفتن متغیرهای محیطی
-TOKEN = os.environ.get('TELEGRAM_TOKEN')  # حواست باشه کلید درست رو استفاده کنی
+TOKEN = os.environ.get('TELEGRAM_TOKEN')
 API_KEY = os.environ.get('BRSAPI_KEY')
 
 bot = telebot.TeleBot(TOKEN)
@@ -22,7 +22,6 @@ def get_full_data():
 
     message = "نرخ بازار:\n——————————————\n"
 
-    # فقط طلا و ارز نمایش داده شود
     sections = {
         "gold": "طلا و سکه",
         "currency": "ارز"
@@ -35,10 +34,9 @@ def get_full_data():
                 name = item.get('name', '')
                 unit = item.get('unit', '')
                 price = item.get('price', '')
-                line = f"{name} | {unit} | قیمت: {price}"
-                message += line + "\n"
+                message += f"{name} | {unit} | قیمت: {price}\n"
 
-    return fix(message)  # اصلاح فقط در انتها
+    return fix(message)
 
 # /start
 @bot.message_handler(commands=['start'])
